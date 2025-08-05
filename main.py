@@ -60,7 +60,19 @@ class DesktopCompanion:
 
         # Click to toggle chat bubble
         self.char_label.bind("<Button-1>", self.toggle_chat_bubble)
-        
+
+    def change_character(self):
+        if self.chat_visible:
+            image = Image.open("assets/rover-searching.png")
+        else:
+            image = Image.open("assets/rover.png")
+
+        image = image.resize(to_tuple(GEOMETRY))
+        self.char_image = ImageTk.PhotoImage(image)
+
+        self.char_label.configure(image=self.char_image)
+        self.char_label.image = self.char_image
+
     def create_chat_window(self):
         if self.chat_window:
             return
@@ -136,11 +148,13 @@ class DesktopCompanion:
             self.chat_window.lift()
             self.chat_window.after(50, lambda: self.entry.focus_force())
         self.chat_visible = True
+        self.change_character()
         
     def hide_chat_bubble(self):
         if self.chat_window:
             self.chat_window.withdraw()
         self.chat_visible = False
+        self.change_character()
         
     def add_message(self, sender, message):
         if not self.chat_window or not hasattr(self, 'chat_history'):
