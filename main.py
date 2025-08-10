@@ -1,16 +1,19 @@
 import tkinter as tk
-from tkinter import scrolledtext
+from tkinter import scrolledtext, filedialog, messagebox
+import json
 import threading
 from datetime import datetime
 import ollama
 from PIL import Image, ImageTk
 
+DEF_MODEL = "llama3.2-rover:3b"
+CONFIG_FILE = "config.json"
 GEOMETRY = "100x100"
 # Geometry to tuple function
 to_tuple = lambda s: tuple(map(int, s.split('x')))
 
 class DesktopCompanion:
-    def __init__(self):
+    def __init__(self, model:str):
         self.root = tk.Tk()
         self.chat_window = None
         self.chat_visible = False
@@ -19,6 +22,7 @@ class DesktopCompanion:
         # Initialize in correct order
         self.setup_window()
         self.setup_character()
+        self.load_config()
         
     def setup_window(self):
         # Window properties
@@ -182,19 +186,17 @@ class DesktopCompanion:
     def send_message(self, event=None):          
         message = self.entry.get().strip()
         if message:
-            # Add user message to history
+            # Add user message to message history
             self.add_message("You", message)
-            
-            # 1. Add user message to message history
             self.messages.append({"role": "user", "content": message})
             
-            # 2. Make the call to Ollama in a separate thread so that the GUI doesn't freeze
+            # Make the call to Ollama in a separate thread so that the GUI doesn't freeze
             def get_response():
                 try:
-                    response = ollama.chat(model='llama3.2-rover:latest', messages=self.messages)
+                    response = ollama.chat(model=self.model, messages=self.messages)
                     reply = response['message']['content']
                     
-                    # 3. Mesaj geçmişine AI cevabını ekle
+                    # Add AI respond to the message history
                     self.messages.append({"role": "assistant", "content": reply})
                     
                     self.root.after(0, lambda: self.add_message("Companion", reply))
@@ -224,6 +226,68 @@ class DesktopCompanion:
             self.add_message("Companion", welcome_msg)
             self.messages.append({"role": "assistant", "content": welcome_msg})
 
+    def open_settings(self):
+        # Create a settings window
+        settings_win = tk.Toplevel(self.root)
+        settings_win.title("Settings")
+        settings_win.geometry("300x600")
+        settings_win.resizable(False, False)
+
+        # Model setting
+        tk.Label(settings_win, text="Ollama Model:").pack(anchor="w", padx=10, pady=(10, 0))
+        # List of available models
+        available_models = [
+            DEF_MODEL
+        ]
+        model_var = tk.StringVar(value=getattr(self, "model", DEF_MODEL))
+        # Create OptionMenu
+        model_menu = tk.OptionMenu(settings_win, model_var, *available_models)
+        
+        # Menu width
+        model_menu.config(width=25)
+        # Pack the menu
+        model_menu.pack(fill="x", padx=10, pady=5)
+
+        # Save button
+        def save_settings():
+            self.model = model_var.get()
+            self.save_config()
+            settings_win.destroy()
+
+        tk.Button(
+            settings_win,
+            text="Save Settings",
+            command=save_settings,
+            bg="#4a90e2",
+            fg="white"
+        ).pack(pady=15)
+
+        # Center the settings window
+        def center_window(win):
+            win.update_idletasks()
+            w = win.winfo_width()
+            h = win.winfo_height()
+            sw = win.winfo_screenwidth()
+            sh = win.winfo_screenheight()
+            x = (sw - w) // 2
+            y = (sh - h) // 2
+            win.geometry(f"{w}x{h}+{x}+{y}")
+        center_window(settings_win)
+
+    def save_config(self):
+        config = {
+            "model": getattr(self, "model", DEF_MODEL)
+        }
+        with open(CONFIG_FILE, "w") as f:
+            json.dump(config, f)
+
+    def load_config(self):
+        try:
+            with open(CONFIG_FILE, "r") as f:
+                config = json.load(f)
+                self.model = config.get("model", DEF_MODEL)
+        except FileNotFoundError:
+            self.model = DEF_MODEL
             
     def start_drag(self, event):
         self.start_x = event.x
@@ -238,8 +302,8 @@ class DesktopCompanion:
         # Right-click menu to close
         def show_menu(event):
             menu = tk.Menu(self.root, tearoff=0)
-            menu.add_command(label="Toggle Chat", command=self.toggle_chat_bubble)
             menu.add_command(label="Clear Chat", command=self.clear_chat_history)
+            menu.add_command(label="Settings", command=self.open_settings)
             menu.add_separator()
             menu.add_command(label="Close", command=self.close_app)
             menu.tk_popup(event.x_root, event.y_root)
@@ -260,8 +324,9 @@ class DesktopCompanion:
 
 if __name__ == "__main__":    
     try:
-        ollama.chat(model="llama3.2-rover:latest")
-        companion = DesktopCompanion()
+        model = DEF_MODEL
+        ollama.chat(model=model)
+        companion = DesktopCompanion(model=model)
         companion.run()
     except Exception as e:
         print(f"Error: {e}")
