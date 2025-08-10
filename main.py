@@ -185,10 +185,10 @@ class DesktopCompanion:
             # Add user message to history
             self.add_message("You", message)
             
-            # 1. Mesaj geçmişine kullanıcı mesajını ekle
+            # 1. Add user message to message history
             self.messages.append({"role": "user", "content": message})
             
-            # 2. Ollama çağrısını ayrı bir thread içinde yap ki GUI donmasın
+            # 2. Make the call to Ollama in a separate thread so that the GUI doesn't freeze
             def get_response():
                 try:
                     response = ollama.chat(model='rover:latest', messages=self.messages)
@@ -206,6 +206,24 @@ class DesktopCompanion:
             # Clear input
             self.entry.delete(0, tk.END)
 
+    def clear_chat_history(self):
+        # If the chat window exists and the chat_history widget is defined
+        if self.chat_window and hasattr(self, 'chat_history'):
+            # Allow editing
+            self.chat_history.config(state=tk.NORMAL)
+            # Delete all content
+            self.chat_history.delete("1.0", tk.END)
+            # Make it read-only again
+            self.chat_history.config(state=tk.DISABLED)
+            
+            # Clear message history list too
+            self.messages.clear()
+
+            # Add welcome message
+            welcome_msg = "Hi! I'm Rover."
+            self.add_message("Companion", welcome_msg)
+            self.messages.append({"role": "assistant", "content": welcome_msg})
+
             
     def start_drag(self, event):
         self.start_x = event.x
@@ -221,6 +239,7 @@ class DesktopCompanion:
         def show_menu(event):
             menu = tk.Menu(self.root, tearoff=0)
             menu.add_command(label="Toggle Chat", command=self.toggle_chat_bubble)
+            menu.add_command(label="Clear Chat", command=self.clear_chat_history)
             menu.add_separator()
             menu.add_command(label="Close", command=self.close_app)
             menu.tk_popup(event.x_root, event.y_root)
