@@ -191,7 +191,7 @@ class DesktopCompanion:
             # 2. Make the call to Ollama in a separate thread so that the GUI doesn't freeze
             def get_response():
                 try:
-                    response = ollama.chat(model='rover:latest', messages=self.messages)
+                    response = ollama.chat(model='llama3.2-rover:latest', messages=self.messages)
                     reply = response['message']['content']
                     
                     # 3. Mesaj geçmişine AI cevabını ekle
@@ -260,7 +260,7 @@ class DesktopCompanion:
 
 if __name__ == "__main__":    
     try:
-        ollama.chat(model="rover:latest")
+        ollama.chat(model="llama3.2-rover:latest")
         companion = DesktopCompanion()
         companion.run()
     except Exception as e:
