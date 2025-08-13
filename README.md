@@ -1,12 +1,13 @@
 # 🧠 Rover - Desktop AI Companion
 ## Description
 
-A cute, draggable, AI-powered desktop assistant built with Python, Tkinter, and Ollama, inspired by Windows XP's dog Rover. Click the floating character to open the chat bubble. It is powered by `Meta Llama 3.2` AI ChatBot, running locally.
+A cute, draggable, AI-powered desktop assistant built with Python, Tkinter, and Ollama, inspired by Windows XP's dog Rover. Click the floating character to open the chat bubble. As default, it is powered by `Meta Llama 3.2`, running locally.
 
 ## Features
 
 - 🧩 Tiny floating assistant with click-to-chat interface
-- 💬 AI responses powered by `Meta Llama 3.2`
+- 💬 AI responses powered by `Meta Llama 3.2` (You can change!)
+- 🤖 Multi-model support, you can change the model and try out different models from Ollama!
 - 🛠️ Personalize the application from settings page
 - 🪟 Lightweight GUI using `tkinter`
 - 🧵 Multithreaded design to avoid GUI freezing
@@ -31,10 +32,9 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-3. Create the Rover model using modelfile
+3. Pull the model Llama3.2
 ```sh
 ollama pull llama3.2:3b
-ollama create llama3.2-rover:3b -f rover
 ```
 - Note: Make sure [Ollama](https://github.com/ollama/ollama) is installed and running.
 - Note: You can edit the model name in `main.py` to use any supported Ollama model.

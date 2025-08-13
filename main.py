@@ -6,7 +6,7 @@ from datetime import datetime
 import ollama
 from PIL import Image, ImageTk
 
-DEF_MODEL = "llama3.2-rover:3b"
+DEF_MODEL = "llama3.2:3b"
 CONFIG_FILE = "config.json"
 GEOMETRY = "100x100"
 # Geometry to tuple function
@@ -17,12 +17,19 @@ class DesktopCompanion:
         self.root = tk.Tk()
         self.chat_window = None
         self.chat_visible = False
+        
+        # The name of the user
+        self.name = None
+        # The list that stores the chat history for the model
         self.messages = []
+        # Load base model
+        self.model = model
         
         # Initialize in correct order
+        self.load_config()
+        self.upsert_system_prompt()
         self.setup_window()
         self.setup_character()
-        self.load_config()
         
     def setup_window(self):
         # Window properties
@@ -87,7 +94,8 @@ class DesktopCompanion:
         self.chat_window.wm_attributes("-topmost", True)
         # Remove overrideredirect to allow proper focus
         self.chat_window.configure(bg='#f0f0f0')
-        self.chat_window.resizable(False, False)
+        # Chat window resizable option
+        self.chat_window.resizable(True, True)
         
         # Position above character
         char_x = self.root.winfo_x()
@@ -132,10 +140,21 @@ class DesktopCompanion:
         # Force focus on the entry field
         self.chat_window.after(100, lambda: self.entry.focus_force())
         
-        # Add welcome message
-        welcome_msg = "Hi! I'm Rover."
+        # Add welcome message on GUI
+        self.add_welcome_message()
+
+    def reset_chat_bubble_size(self):
+        if self.chat_visible:
+            # Position above character
+            char_x = self.root.winfo_x()
+            char_y = self.root.winfo_y()
+            bubble_x = char_x - 150
+            bubble_y = char_y - 300
+            self.chat_window.geometry(f"300x250+{bubble_x}+{bubble_y}")
+
+    def add_welcome_message(self):
+        welcome_msg = "Welcome!"
         self.add_message("Companion", welcome_msg)
-        self.messages.append({"role": "assistant", "content": welcome_msg})
         
     def toggle_chat_bubble(self, event=None):
         if self.chat_visible:
@@ -228,10 +247,11 @@ class DesktopCompanion:
             # Clear message history list too
             self.messages.clear()
 
-            # Add welcome message
-            welcome_msg = "Hi! I'm Rover."
-            self.add_message("Companion", welcome_msg)
-            self.messages.append({"role": "assistant", "content": welcome_msg})
+            # Upsert system prompt
+            self.upsert_system_prompt()
+
+            # Add welcome message on GUI
+            self.add_welcome_message()
 
     def open_settings(self):
         # Create a settings window
@@ -243,31 +263,60 @@ class DesktopCompanion:
         # Model setting
         tk.Label(settings_win, text="Ollama Model:").pack(anchor="w", padx=10, pady=(10, 0))
         # List of available models
-        available_models = [
-            DEF_MODEL
-        ]
+        try:
+            # Get all installed models from Ollama
+            models_data = ollama.list()
+            available_models = sorted([m["model"] for m in models_data["models"]], key=str.lower)
+        except Exception as e:
+            available_models = [DEF_MODEL]
+            messagebox.showerror("Error", f"Could not load models: {e}")
+        
         model_var = tk.StringVar(value=getattr(self, "model", DEF_MODEL))
         # Create OptionMenu
         model_menu = tk.OptionMenu(settings_win, model_var, *available_models)
-        
         # Menu width
         model_menu.config(width=25)
         # Pack the menu
         model_menu.pack(fill="x", padx=10, pady=5)
 
-        # Save button
+        # Name setting
+        tk.Label(settings_win, text="Your Name:").pack(anchor="w", padx=10, pady=(10, 0))
+        name_var = tk.StringVar(value=getattr(self, "name", ""))
+        tk.Entry(settings_win, textvariable=name_var, width=30).pack(fill="x", padx=10, pady=5)
+
+        # Save function
         def save_settings():
+            # Get model
             self.model = model_var.get()
+            # Get name
+            self.name = name_var.get().strip() or None
             self.save_config()
             settings_win.destroy()
+            # Clear the chat after saving settings
+            self.clear_chat_history()
 
+        # Buttons frame
+        btn_frame = tk.Frame(settings_win)
+        btn_frame.pack(pady=15)
+
+        # Save button
         tk.Button(
-            settings_win,
+            btn_frame,
             text="Save Settings",
             command=save_settings,
             bg="#4a90e2",
-            fg="white"
-        ).pack(pady=15)
+            fg="white",
+            width=12
+        ).pack(side="left", padx=5)
+
+        # Abort settings and quit
+        tk.Button(
+            btn_frame,
+            text="Cancel",
+            bg="#4a90e2",
+            fg="white",
+            width=12,
+            command=settings_win.destroy).pack(side="left", padx=5)
 
         # Center the settings window
         def center_window(win):
@@ -282,19 +331,50 @@ class DesktopCompanion:
         center_window(settings_win)
 
     def save_config(self):
+        # Create config dictionary
         config = {
-            "model": getattr(self, "model", DEF_MODEL)
+            "model": getattr(self, "model", DEF_MODEL),
+            "name": getattr(self, "name", None)
         }
+        # Save it as json file
         with open(CONFIG_FILE, "w") as f:
-            json.dump(config, f)
+            json.dump(config, f, indent=4)
 
     def load_config(self):
         try:
             with open(CONFIG_FILE, "r") as f:
                 config = json.load(f)
+                # Add model
                 self.model = config.get("model", DEF_MODEL)
+                # Add system prompt: name
+                self.name = config.get("name", None)
         except FileNotFoundError:
             self.model = DEF_MODEL
+            self.name = None
+
+    def get_system_prompt(self):
+        # Base system prompt
+        prompt = (
+            "You are Rover, a helpful dog-themed personal assistant. "
+            "Role: provide accurate, concise answers. "
+            "Constraints: keep shorts replies unless asked to expand."
+        )
+        # If there is a name, add it
+        if self.name:
+            prompt += f" The user's name is {self.name}."
+        
+        return prompt
+
+    def upsert_system_prompt(self):
+        # build the final system string
+        sys_text = self.get_system_prompt().strip()
+        # ensure trailing period/space is sane
+        if not sys_text.endswith((".", "!", "?")):
+            sys_text += "."
+        # remove existing system messages
+        self.messages = [m for m in self.messages if m.get("role") != "system"]
+        # insert as first message
+        self.messages.insert(0, {"role": "system", "content": sys_text})
             
     def start_drag(self, event):
         self.start_x = event.x
@@ -311,6 +391,7 @@ class DesktopCompanion:
             menu = tk.Menu(self.root, tearoff=0)
             menu.add_command(label="Clear Chat", command=self.clear_chat_history)
             menu.add_command(label="Settings", command=self.open_settings)
+            menu.add_command(label="Reset Position", command=self.reset_chat_bubble_size)
             menu.add_separator()
             menu.add_command(label="Close", command=self.close_app)
             menu.tk_popup(event.x_root, event.y_root)
