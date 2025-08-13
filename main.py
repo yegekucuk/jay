@@ -13,7 +13,7 @@ GEOMETRY = "100x100"
 to_tuple = lambda s: tuple(map(int, s.split('x')))
 
 class DesktopCompanion:
-    def __init__(self, model:str):
+    def __init__(self):
         self.root = tk.Tk()
         self.chat_window = None
         self.chat_visible = False
@@ -22,9 +22,7 @@ class DesktopCompanion:
         self.name = None
         # The list that stores the chat history for the model
         self.messages = []
-        # Load base model
-        self.model = model
-        
+
         # Initialize in correct order
         self.load_config()
         self.upsert_system_prompt()
@@ -412,9 +410,7 @@ class DesktopCompanion:
 
 if __name__ == "__main__":    
     try:
-        model = DEF_MODEL
-        ollama.chat(model=model)
-        companion = DesktopCompanion(model=model)
+        companion = DesktopCompanion()
         companion.run()
     except Exception as e:
         print(f"Error: {e}")
