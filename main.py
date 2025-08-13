@@ -52,7 +52,7 @@ class DesktopCompanion:
         
     def setup_character(self):
         # Character frame
-        self.char_frame = tk.Frame(self.root, bg='black', width=80, height=80)
+        self.char_frame = tk.Frame(self.root, bg='black', width=100, height=100)
         self.char_frame.pack(pady=5)
 
         image = Image.open("assets/rover.png")
@@ -183,9 +183,15 @@ class DesktopCompanion:
         self.chat_history.config(state=tk.DISABLED)
         self.chat_history.see(tk.END)  # Scroll to bottom
         
-    def send_message(self, event=None):          
+    def send_message(self, event=None):
         message = self.entry.get().strip()
-        if message:
+        # Clear input
+        self.entry.delete(0, tk.END)
+        
+        if message == "/clear":
+                self.clear_chat_history()
+                return
+        elif message:
             # Add user message to message history
             self.add_message("You", message)
             self.messages.append({"role": "user", "content": message})
@@ -205,9 +211,6 @@ class DesktopCompanion:
             
             threading.Thread(target=get_response, daemon=True).start()
             
-            # Clear input
-            self.entry.delete(0, tk.END)
-
     def clear_chat_history(self):
         # If the chat window exists and the chat_history widget is defined
         if self.chat_window and hasattr(self, 'chat_history'):
