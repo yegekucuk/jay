@@ -191,6 +191,10 @@ class DesktopCompanion:
         if message == "/clear":
                 self.clear_chat_history()
                 return
+        elif message == "/bye":
+                self.clear_chat_history()
+                self.toggle_chat_bubble()
+                return
         elif message:
             # Add user message to message history
             self.add_message("You", message)
