@@ -220,7 +220,7 @@ class DesktopCompanion:
             # Make the call to Ollama in a separate thread so that the GUI doesn't freeze
             def get_response():
                 try:
-                    response = ollama.chat(model=self.model, messages=self.messages)
+                    response = ollama.chat(model=self.model, messages=self.messages, keep_alive=-1)
                     reply = response['message']['content']
                     
                     # Add AI respond to the message history
@@ -344,6 +344,8 @@ class DesktopCompanion:
                 config = json.load(f)
                 # Add model
                 self.model = config.get("model", DEF_MODEL)
+                # Load the model on the memory
+                ollama.chat(model=self.model, keep_alive=-1)
                 # Add system prompt: name
                 self.name = config.get("name", None)
         except FileNotFoundError:
@@ -395,11 +397,15 @@ class DesktopCompanion:
             menu.tk_popup(event.x_root, event.y_root)
             
         def close_app():
+            def unload_model():
+                import os
+                os.system(f"ollama stop {self.model}")
             try:
                 if self.chat_window:
                     self.chat_window.destroy()
                 self.root.quit()
                 self.root.destroy()
+                unload_model()
             except:
                 pass
             
