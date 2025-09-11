@@ -1,9 +1,9 @@
-import tkinter as tk
-from tkinter import scrolledtext, filedialog, messagebox
 import json
 import threading
-from datetime import datetime
+import tkinter as tk
 import ollama
+from tkinter import scrolledtext, messagebox
+from datetime import datetime
 from PIL import Image, ImageTk
 
 DEF_MODEL = "llama3.2:3b"
@@ -96,11 +96,7 @@ class DesktopCompanion:
         self.chat_window.resizable(True, True)
         
         # Position above character
-        char_x = self.root.winfo_x()
-        char_y = self.root.winfo_y()
-        bubble_x = char_x - 150
-        bubble_y = char_y - 300
-        self.chat_window.geometry(f"300x250+{bubble_x}+{bubble_y}")
+        self.set_chat_bubble_size(300,250)
         
         # Handle window close button
         self.chat_window.protocol("WM_DELETE_WINDOW", self.hide_chat_bubble)
@@ -141,14 +137,21 @@ class DesktopCompanion:
         # Add welcome message on GUI
         self.add_welcome_message()
 
+    def set_chat_bubble_size(self, height:int, width:int):
+        # Position above character
+        char_x = self.root.winfo_x()
+        char_y = self.root.winfo_y()
+        bubble_x = char_x - 150
+        bubble_y = char_y - 300
+        
+        self.chat_bubble_height = height
+        self.chat_bubble_width = width
+
+        self.chat_window.geometry(f"{height}x{width}+{bubble_x}+{bubble_y}")
+
     def reset_chat_bubble_size(self):
         if self.chat_visible:
-            # Position above character
-            char_x = self.root.winfo_x()
-            char_y = self.root.winfo_y()
-            bubble_x = char_x - 150
-            bubble_y = char_y - 300
-            self.chat_window.geometry(f"300x250+{bubble_x}+{bubble_y}")
+            self.set_chat_bubble_size(self.chat_bubble_height, self.chat_bubble_width)
 
     def add_welcome_message(self):
         welcome_msg = "Welcome!"
@@ -413,11 +416,3 @@ class DesktopCompanion:
         self.root.bind("<Button-3>", show_menu)
         
         self.root.mainloop()
-
-if __name__ == "__main__":    
-    try:
-        companion = DesktopCompanion()
-        companion.run()
-    except Exception as e:
-        print(f"Error: {e}")
-        input("Press Enter to exit...")

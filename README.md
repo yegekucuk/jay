@@ -45,7 +45,7 @@ ollama pull llama3.2:3b
 # If you use virtual environment:
 source venv/bin/activate
 
-python main.py
+python src/main.py
 ```
 
 The assistant will appear in the bottom-right corner of your screen. Click on it to start chatting!
