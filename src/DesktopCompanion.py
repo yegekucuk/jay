@@ -60,7 +60,7 @@ class DesktopCompanion:
         self.char_frame = tk.Frame(self.root, bg='black', width=100, height=100)
         self.char_frame.pack(pady=5)
 
-        image = Image.open("assets/rover.png")
+        image = Image.open("assets/jay.png")
         image = image.resize(to_tuple(GEOMETRY))
         self.char_image = ImageTk.PhotoImage(image)
 
@@ -72,9 +72,9 @@ class DesktopCompanion:
 
     def change_character(self):
         if self.chat_visible:
-            image = Image.open("assets/rover-searching.png")
+            image = Image.open("assets/jay-active.png")
         else:
-            image = Image.open("assets/rover.png")
+            image = Image.open("assets/jay.png")
 
         image = image.resize(to_tuple(GEOMETRY))
         self.char_image = ImageTk.PhotoImage(image)
@@ -154,7 +154,7 @@ class DesktopCompanion:
             self.set_chat_bubble_size(self.chat_bubble_height, self.chat_bubble_width)
 
     def add_welcome_message(self):
-        welcome_msg = "Welcome!"
+        welcome_msg = "Welcome back!"
         self.add_message("Companion", welcome_msg)
         
     def toggle_chat_bubble(self, event=None):
@@ -193,7 +193,7 @@ class DesktopCompanion:
             self.chat_history.insert(tk.END, f"[{timestamp}] You: ", "user_tag")
             self.chat_history.insert(tk.END, f"{message}\n\n")
         else:
-            self.chat_history.insert(tk.END, f"[{timestamp}] Rover: ", "companion_tag")
+            self.chat_history.insert(tk.END, f"[{timestamp}] Jay: ", "companion_tag")
             self.chat_history.insert(tk.END, f"{message}\n\n")
         
         # Configure tags for styling
@@ -358,7 +358,7 @@ class DesktopCompanion:
     def get_system_prompt(self):
         # Base system prompt
         prompt = (
-            "You are Rover, a helpful dog-themed personal assistant. "
+            "You are Jay, a helpful personal assistant. "
             "Role: provide accurate, concise answers. "
             "Constraints: keep shorts replies unless asked to expand."
         )
