@@ -9,6 +9,9 @@ from PIL import Image, ImageTk
 DEF_MODEL = "llama3.2:3b"
 CONFIG_FILE = "config.json"
 GEOMETRY = "100x100"
+
+fontsize = 11
+
 # Geometry to tuple function
 to_tuple = lambda s: tuple(map(int, s.split('x')))
 
@@ -86,17 +89,17 @@ class DesktopCompanion:
         if self.chat_window:
             return
             
-        # Create chat bubble window - NORMAL window that can receive focus
+        # Create chat bubble window
         self.chat_window = tk.Toplevel(self.root)
         self.chat_window.title("💬 Chat")
         self.chat_window.wm_attributes("-topmost", True)
-        # Remove overrideredirect to allow proper focus
         self.chat_window.configure(bg='#f0f0f0')
         # Chat window resizable option
         self.chat_window.resizable(True, True)
         
-        # Position above character
-        self.set_chat_bubble_size(300,250)
+        # Center chat window
+        self.set_chat_bubble_size(750, 500)
+        self.center_window(self.chat_window)
         
         # Handle window close button
         self.chat_window.protocol("WM_DELETE_WINDOW", self.hide_chat_bubble)
@@ -108,12 +111,8 @@ class DesktopCompanion:
         # Chat history area
         self.chat_history = scrolledtext.ScrolledText(
             bubble_frame, 
-            height=10, 
-            width=35,
-            font=("Arial", 9),
-            bg='#f8f9fa',
-            wrap=tk.WORD,
-            state=tk.DISABLED
+            height=10, width=35, font=("Arial", fontsize),
+            bg='#f8f9fa', wrap=tk.WORD, state=tk.DISABLED
         )
         self.chat_history.pack(fill='both', expand=True, padx=5, pady=5)
         
@@ -122,12 +121,12 @@ class DesktopCompanion:
         input_frame.pack(fill='x', padx=5, pady=5)
         
         # Make input field larger and more visible
-        self.entry = tk.Entry(input_frame, font=("Arial", 10), relief='solid', bd=1)
+        self.entry = tk.Entry(input_frame, font=("Arial", fontsize), relief='solid', bd=1)
         self.entry.pack(side='left', fill='x', expand=True, padx=(0, 5))
         self.entry.bind("<Return>", self.send_message)
         
         send_btn = tk.Button(input_frame, text="Send", command=self.send_message,
-                           bg='#4a90e2', fg='white', font=("Arial", 9, "bold"),
+                           bg='#4a90e2', fg='white', font=("Arial", fontsize, "bold"),
                            relief='flat', cursor="hand2")
         send_btn.pack(side='right')
         
@@ -137,21 +136,26 @@ class DesktopCompanion:
         # Add welcome message on GUI
         self.add_welcome_message()
 
-    def set_chat_bubble_size(self, height:int, width:int):
-        # Position above character
-        char_x = self.root.winfo_x()
-        char_y = self.root.winfo_y()
-        bubble_x = char_x - 150
-        bubble_y = char_y - 300
-        
-        self.chat_bubble_height = height
+    def set_chat_bubble_size(self, width:int, height:int):        
         self.chat_bubble_width = width
+        self.chat_bubble_height = height
 
-        self.chat_window.geometry(f"{height}x{width}+{bubble_x}+{bubble_y}")
+        self.chat_window.geometry(f"{width}x{height}")
 
     def reset_chat_bubble_size(self):
         if self.chat_visible:
-            self.set_chat_bubble_size(self.chat_bubble_height, self.chat_bubble_width)
+            self.set_chat_bubble_size(self.chat_bubble_width, self.chat_bubble_height)
+            self.center_window(self.chat_window)
+
+    def center_window(self, win:tk.Toplevel):
+                win.update_idletasks()
+                w = win.winfo_width()
+                h = win.winfo_height()
+                sw = win.winfo_screenwidth()
+                sh = win.winfo_screenheight()
+                x = (sw - w) // 2
+                y = (sh - h) // 2
+                win.geometry(f"{w}x{h}+{x}+{y}")
 
     def add_welcome_message(self):
         welcome_msg = "Welcome back!"
@@ -197,8 +201,8 @@ class DesktopCompanion:
             self.chat_history.insert(tk.END, f"{message}\n\n")
         
         # Configure tags for styling
-        self.chat_history.tag_config("user_tag", foreground="#2c5aa0", font=("Arial", 9, "bold"))
-        self.chat_history.tag_config("companion_tag", foreground="#e91e63", font=("Arial", 9, "bold"))
+        self.chat_history.tag_config("user_tag", foreground="#2c5aa0", font=("Arial", fontsize, "bold"))
+        self.chat_history.tag_config("companion_tag", foreground="#e91e63", font=("Arial", fontsize, "bold"))
         
         self.chat_history.config(state=tk.DISABLED)
         self.chat_history.see(tk.END)  # Scroll to bottom
@@ -260,6 +264,7 @@ class DesktopCompanion:
         settings_win.title("Settings")
         settings_win.geometry("300x600")
         settings_win.resizable(False, False)
+        settings_win.wm_attributes("-topmost", True)
 
         # Model setting
         tk.Label(settings_win, text="Ollama Model:").pack(anchor="w", padx=10, pady=(10, 0))
@@ -320,16 +325,7 @@ class DesktopCompanion:
             command=settings_win.destroy).pack(side="left", padx=5)
 
         # Center the settings window
-        def center_window(win):
-            win.update_idletasks()
-            w = win.winfo_width()
-            h = win.winfo_height()
-            sw = win.winfo_screenwidth()
-            sh = win.winfo_screenheight()
-            x = (sw - w) // 2
-            y = (sh - h) // 2
-            win.geometry(f"{w}x{h}+{x}+{y}")
-        center_window(settings_win)
+        self.center_window(settings_win)
 
     def save_config(self):
         # Create config dictionary
@@ -358,9 +354,9 @@ class DesktopCompanion:
     def get_system_prompt(self):
         # Base system prompt
         prompt = (
-            "You are Jay, a helpful personal assistant. "
-            "Role: provide accurate, concise answers. "
-            "Constraints: keep shorts replies unless asked to expand."
+            "You are Jay, a helpful personal assistant. \n"
+            "Role: provide accurate, concise answers. \n"
+            "Constraints: keep shorts replies unless asked to expand. \n"
         )
         # If there is a name, add it
         if self.name:
