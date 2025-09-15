@@ -104,6 +104,10 @@ class DesktopCompanion:
         # Handle window close button
         self.chat_window.protocol("WM_DELETE_WINDOW", self.hide_chat_bubble)
         
+        # Label
+        self.model_name_label = tk.Label(self.chat_window, text=self.model, font=("Arial", fontsize))
+        self.model_name_label.pack(pady=5)
+
         # Chat bubble content frame
         bubble_frame = tk.Frame(self.chat_window, bg='white', relief='raised', bd=1)
         bubble_frame.pack(fill='both', expand=True, padx=2, pady=2)
@@ -195,10 +199,10 @@ class DesktopCompanion:
         # Different styling for user vs companion
         if sender == "You":
             self.chat_history.insert(tk.END, f"[{timestamp}] You: ", "user_tag")
-            self.chat_history.insert(tk.END, f"{message}\n\n")
+            self.chat_history.insert(tk.END, f"\n{message}\n\n")
         else:
             self.chat_history.insert(tk.END, f"[{timestamp}] Jay: ", "companion_tag")
-            self.chat_history.insert(tk.END, f"{message}\n\n")
+            self.chat_history.insert(tk.END, f"\n{message}\n\n")
         
         # Configure tags for styling
         self.chat_history.tag_config("user_tag", foreground="#2c5aa0", font=("Arial", fontsize, "bold"))
@@ -300,6 +304,9 @@ class DesktopCompanion:
             settings_win.destroy()
             # Clear the chat after saving settings
             self.clear_chat_history()
+            # Update the model name label if exists
+            if self.model_name_label:
+                self.model_name_label.config(text=self.model)
 
         # Buttons frame
         btn_frame = tk.Frame(settings_win)
@@ -356,11 +363,14 @@ class DesktopCompanion:
         prompt = (
             "You are Jay, a helpful personal assistant. \n"
             "Role: provide accurate, concise answers. \n"
-            "Constraints: keep shorts replies unless asked to expand. \n"
+            "Constraints: \n"
+            "- Keep short replies unless asked to expand.\n"
+            "- If the user explicitly asks for more detail or explanation, provide longer, structured responses.\n"
+            "- If you are not sure about your answer, DO NOT answer. DO NOT take a guess and DO NOT make assumptions."
         )
         # If there is a name, add it
         if self.name:
-            prompt += f" The user's name is {self.name}."
+            prompt += f"\nThe user's name is {self.name}."
         
         return prompt
 
