@@ -1,14 +1,13 @@
-# 🧠 Rover - Desktop AI Companion
+# 🧠 Jay - Desktop AI Assistant
 ## Description
 
-A cute, draggable, AI-powered desktop assistant built with Python, Tkinter, and Ollama, inspired by Windows XP's dog Rover. Click the floating character to open the chat bubble. As default, it is powered by `Meta Llama 3.2`, running locally.
+A cute, draggable, AI-powered desktop assistant built with Python, Tkinter, and Ollama. Click the floating character to open the chat bubble. As default, it is powered by `Meta Llama 3.2`, running locally.
 
 ## Features
 
 - 🧩 Tiny floating assistant with click-to-chat interface
 - 💬 AI responses powered by `Meta Llama 3.2` (You can change!)
 - 🤖 Multi-model support, you can change the model and try out different models from Ollama!
-- 🛠️ Personalize the application from settings page
 - 🪟 Lightweight GUI using `tkinter`
 - 🧵 Multithreaded design to avoid GUI freezing
 - 💻 Runs locally, no API keys required!
@@ -18,8 +17,8 @@ A cute, draggable, AI-powered desktop assistant built with Python, Tkinter, and 
 1. Clone the repository
 
 ```sh
-git clone https://github.com/yegekucuk/rover.git
-cd rover
+git clone https://github.com/yegekucuk/jay.git
+cd jay
 ```
 
 2. Install dependencies
