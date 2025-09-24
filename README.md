@@ -1,4 +1,11 @@
-# 🧠 Jay - Desktop AI Assistant
+<h1 align="center">🧠 Jay - AI Companion Desktop GUI</h1>
+
+<div align="center">
+  <img src="https://img.shields.io/badge/license-MIT-blue" />
+  <img src="https://img.shields.io/badge/python-3.10-blue" />
+  <img width="1080" height="720" alt="image" src="https://github.com/user-attachments/assets/c4bcdac8-b564-418e-a05d-bbd36b14b36d" />
+</div>
+
 ## Description
 
 A cute, draggable, AI-powered desktop assistant built with Python, Tkinter, and Ollama. Click the floating character to open the chat bubble!
