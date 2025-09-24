@@ -2,11 +2,11 @@ import json
 import threading
 import tkinter as tk
 import ollama
+import sys
 from tkinter import scrolledtext, messagebox
 from datetime import datetime
 from PIL import Image, ImageTk
 
-DEF_MODEL = "llama3.2:3b"
 CONFIG_FILE = "config.json"
 GEOMETRY = "100x100"
 
@@ -278,10 +278,10 @@ class DesktopCompanion:
             models_data = ollama.list()
             available_models = sorted([m["model"] for m in models_data["models"]], key=str.lower)
         except Exception as e:
-            available_models = [DEF_MODEL]
+            available_models = []
             messagebox.showerror("Error", f"Could not load models: {e}")
         
-        model_var = tk.StringVar(value=getattr(self, "model", DEF_MODEL))
+        model_var = tk.StringVar(value=getattr(self, "model", ""))
         # Create OptionMenu
         model_menu = tk.OptionMenu(settings_win, model_var, *available_models)
         # Menu width
@@ -337,26 +337,54 @@ class DesktopCompanion:
     def save_config(self):
         # Create config dictionary
         config = {
-            "model": getattr(self, "model", DEF_MODEL),
+            "model": getattr(self, "model", ""),
             "name": getattr(self, "name", None)
         }
         # Save it as json file
         with open(CONFIG_FILE, "w") as f:
             json.dump(config, f, indent=4)
 
+    def get_available_models(self):
+        """Get list of installed Ollama models"""
+        try:
+            models_data = ollama.list()
+            return [m["model"] for m in models_data["models"]]
+        except Exception as e:
+            raise Exception(f"Failed to get Ollama models: {e}")
+
     def load_config(self):
+        # First, check if any models are available
+        available_models = self.get_available_models()
+        if not available_models:
+            messagebox.showerror(
+                "No Models Found", 
+                "No Ollama models are installed. Please install at least one model using:\n\n"
+                "ollama pull <model_name>\n\n"
+                "For example: ollama pull llama3.2:3b"
+            )
+            sys.exit(1)
+        
         try:
             with open(CONFIG_FILE, "r") as f:
                 config = json.load(f)
-                # Add model
-                self.model = config.get("model", DEF_MODEL)
-                # Load the model on the memory
+                # Check if saved model exists
+                saved_model = config.get("model", "")
+                if saved_model in available_models:
+                    self.model = saved_model
+                else:
+                    # Use first available model if saved model doesn't exist
+                    self.model = available_models[0]
+                
+                # Load the model into memory
                 ollama.chat(model=self.model, keep_alive=-1)
-                # Add system prompt: name
+                # Load name
                 self.name = config.get("name", None)
         except FileNotFoundError:
-            self.model = DEF_MODEL
+            # Use first available model as default
+            self.model = available_models[0]
             self.name = None
+            # Load the model into memory
+            ollama.chat(model=self.model, keep_alive=-1)
 
     def get_system_prompt(self):
         # Base system prompt
@@ -422,3 +450,11 @@ class DesktopCompanion:
         self.root.bind("<Button-3>", show_menu)
         
         self.root.mainloop()
+
+if __name__ == "__main__":
+    try:
+        app = DesktopCompanion()
+        app.run()
+    except Exception as e:
+        print(f"Error starting application: {e}")
+        sys.exit(1)

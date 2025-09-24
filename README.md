@@ -1,14 +1,13 @@
 # 🧠 Jay - Desktop AI Assistant
 ## Description
 
-A cute, draggable, AI-powered desktop assistant built with Python, Tkinter, and Ollama. Click the floating character to open the chat bubble. As default, it is powered by `Meta Llama 3.2`, running locally.
+A cute, draggable, AI-powered desktop assistant built with Python, Tkinter, and Ollama. Click the floating character to open the chat bubble!
 
 ## Features
 
 - 🧩 Tiny floating assistant with click-to-chat interface
-- 💬 AI responses powered by `Meta Llama 3.2` (You can change!)
-- 🤖 Multi-model support, you can change the model and try out different models from Ollama!
-- 🪟 Lightweight GUI using `tkinter`
+- 🤖 Multi-model support from Ollama
+- 🪟 Lightweight GUI
 - 🧵 Multithreaded design to avoid GUI freezing
 - 💻 Runs locally, no API keys required!
 
@@ -31,13 +30,6 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-3. Pull the model Llama3.2
-```sh
-ollama pull llama3.2:3b
-```
-- Note: Make sure [Ollama](https://github.com/ollama/ollama) is installed and running.
-- Note: You can edit the model name in `main.py` to use any supported Ollama model.
-
 ## 🚀 Usage
 
 ```sh
@@ -51,10 +43,9 @@ The assistant will appear in the bottom-right corner of your screen. Click on it
 
 Right-click the character to:
 - Toggle the chat bubble
+- Open settings
 - Close the application
 
 ## 📄 License
 
 Built by [Yunus Ege Küçük](https://github.com/yegekucuk). The software is licensed under the GPL-3 License.
-
-Meta Llama 3 is licensed under the [Meta Llama 3 Community License](https://github.com/meta-llama/llama3/blob/main/LICENSE), Copyright © Meta Platforms, Inc. All Rights Reserved. This is a personal project and this project is not affiliated with or endorsed by Meta.
